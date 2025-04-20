@@ -36,10 +36,7 @@ jobs:
   publish:
     needs: build
     runs-on: ubuntu-latest
-    if: |
-      github.event_name == 'push' &&
-      github.ref == 'refs/heads/main' &&
-      !contains(github.event.head_commit.message, '[skip publish]')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     
     steps:
     - uses: actions/checkout@v4
@@ -50,41 +47,13 @@ jobs:
         node-version: '20.x'
         registry-url: 'https://registry.npmjs.org'
     
-    - name: Verify NPM token
-      run: |
-        if [ -z "${{ secrets.NPM_TOKEN }}" ]; then
-          echo "Error: NPM_TOKEN secret is not set in the repository"
-          echo "Please add your NPM token as a repository secret named 'NPM_TOKEN'"
-          exit 1
-        fi
-    
     - name: Install dependencies
       run: npm ci
     
     - name: Build
       run: npm run build
     
-    - name: Check package version
-      id: check
-      run: |
-        PACKAGE_VERSION=$(node -p "require('./package.json').version")
-        echo "version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
-        if npm view primerguard@$PACKAGE_VERSION version &>/dev/null; then
-          echo "Version $PACKAGE_VERSION already exists on NPM"
-          echo "should_publish=false" >> $GITHUB_OUTPUT
-        else
-          echo "Publishing version $PACKAGE_VERSION"
-          echo "should_publish=true" >> $GITHUB_OUTPUT
-        fi
-    
     - name: Publish to NPM
-      if: steps.check.outputs.should_publish == 'true'
-      run: npm publish --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      
-    - name: Create Git tag
-      if: steps.check.outputs.should_publish == 'true'
-      run: |
-        git tag v${{ steps.check.outputs.version }}
-        git push origin v${{ steps.check.outputs.version }}
+      run: npm publish
