@@ -1,0 +1,36 @@
+{
+  "name": "primerguard",
+  "version": "1.0.0",
+  "description": "Client-side web immunity agent to protect against script injection, errors, and backdoors.",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build",
+    "test": "echo 'Tests coming soon'"
+  },
+  "keywords": [
+    "cybersecurity",
+    "web defense",
+    "XSS",
+    "client-side",
+    "DOM monitoring",
+    "error handling",
+    "self-healing"
+  ],
+  "author": "Primers AI | Jothan Prime",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/primers-ai/primerguard"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}
