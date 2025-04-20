@@ -42,10 +42,12 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
+    environment:
+      name: npm
+      url: https://github.com/jothanprime/primerguard/deployments
     permissions:
       contents: read
       packages: write
-      id-token: write
     
     steps:
     - uses: actions/checkout@v4

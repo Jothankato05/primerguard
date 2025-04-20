@@ -3,7 +3,7 @@ export interface PrimerGuardConfig {
 }
 
 export interface ImmunityEvent {
-    type: 'script_block' | 'blocked_fetch' | 'js_error' | 'patch_applied';
+    type: 'patch_applied' | 'script_block' | 'blocked_script' | 'blocked_fetch' | 'js_error';
     node?: Node;
     url?: string;
     message?: string;
@@ -15,6 +15,7 @@ export interface ImmunityEvent {
 }
 
 export interface PrimerGuardInterface {
+    initialize(): void;
     immuneLog: ImmunityEvent[];
     blocklist: string[];
     getImmuneLog(): ImmunityEvent[];

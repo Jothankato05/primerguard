@@ -4,25 +4,26 @@ export class PrimerGuard implements PrimerGuardInterface {
     public immuneLog: ImmunityEvent[];
     public blocklist: string[];
 
-    constructor(config: PrimerGuardConfig = {}) {
+    constructor(config?: PrimerGuardConfig) {
         this.immuneLog = [];
-        this.blocklist = config.blocklist || ['malware.com', 'api.stealmydata.io'];
-        this._initDOMObserver();
+        this.blocklist = config?.blocklist || ['malware.com', 'malicious-cdn.com'];
+    }
+
+    public initialize(): void {
         this._overrideFetch();
-        this._captureErrors();
+        this._initDOMObserver();
     }
 
     private _initDOMObserver(): void {
-        const observer = new MutationObserver((mutations: MutationRecord[]) => {
-            mutations.forEach(mutation => {
-                mutation.addedNodes.forEach(node => {
-                    if (node.nodeType === 1 && (node as Element).tagName === "SCRIPT") {
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                mutation.addedNodes.forEach((node) => {
+                    if (node instanceof HTMLScriptElement) {
                         const scriptNode = node as HTMLScriptElement;
-                        const isInjected = !scriptNode.src.includes(window.location.hostname);
-                        if (isInjected) {
-                            this.immuneLog.push({ type: 'script_block', node });
-                            if (node.parentNode) {
-                                node.parentNode.removeChild(node);
+                        if (this.blocklist.some(domain => scriptNode.src.includes(domain))) {
+                            this.immuneLog.push({ type: 'blocked_script', url: scriptNode.src });
+                            if (scriptNode.parentNode) {
+                                scriptNode.parentNode.removeChild(scriptNode);
                             }
                         }
                     }
@@ -30,19 +31,19 @@ export class PrimerGuard implements PrimerGuardInterface {
             });
         });
 
-        observer.observe(document.body, { childList: true, subtree: true });
+        observer.observe(document.documentElement, { childList: true, subtree: true });
     }
 
     private _overrideFetch(): void {
         const originalFetch = window.fetch;
 
-        window.fetch = async (...args: [RequestInfo | URL, RequestInit?]): Promise<Response> => {
-            const url = args[0] instanceof Request ? args[0].url : String(args[0]);
+        window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+            const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
             if (this.blocklist.some(domain => url.includes(domain))) {
                 this.immuneLog.push({ type: 'blocked_fetch', url });
                 return new Response(JSON.stringify({ error: "Blocked by PrimerGuard" }), { status: 403 });
             }
-            return originalFetch(...args);
+            return originalFetch.call(window, input, init);
         };
     }
 
