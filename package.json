@@ -1,5 +1,5 @@
 {
-  "name": "primerguard",
+  "name": "@jothankato05/primerguard",
   "version": "1.0.1",
   "description": "Client-side web immunity agent to protect against script injection, errors, and backdoors.",
   "main": "dist/index.js",
@@ -31,6 +31,10 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/Jothankato05/primerguard"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "devDependencies": {
     "@types/jest": "^29.5.0",
