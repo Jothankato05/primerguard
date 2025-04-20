@@ -1,6 +1,6 @@
 import { PrimerGuardConfig, ImmunityEvent, PrimerGuardInterface } from './types';
 
-class PrimerGuard implements PrimerGuardInterface {
+export class PrimerGuard implements PrimerGuardInterface {
     public immuneLog: ImmunityEvent[];
     public blocklist: string[];
 
@@ -35,15 +35,14 @@ class PrimerGuard implements PrimerGuardInterface {
 
     private _overrideFetch(): void {
         const originalFetch = window.fetch;
-        const self = this;
 
-        window.fetch = async function(...args: Parameters<typeof fetch>): Promise<Response> {
+        window.fetch = async (...args: [RequestInfo | URL, RequestInit?]): Promise<Response> => {
             const url = args[0] instanceof Request ? args[0].url : String(args[0]);
-            if (self.blocklist.some(domain => url.includes(domain))) {
-                self.immuneLog.push({ type: 'blocked_fetch', url });
+            if (this.blocklist.some(domain => url.includes(domain))) {
+                this.immuneLog.push({ type: 'blocked_fetch', url });
                 return new Response(JSON.stringify({ error: "Blocked by PrimerGuard" }), { status: 403 });
             }
-            return originalFetch.apply(window, args);
+            return originalFetch(...args);
         };
     }
 
