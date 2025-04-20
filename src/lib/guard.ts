@@ -4,14 +4,15 @@ export class PrimerGuard implements PrimerGuardInterface {
     public immuneLog: ImmunityEvent[];
     public blocklist: string[];
 
-    constructor(config?: PrimerGuardConfig) {
+    constructor(config: PrimerGuardConfig = {}) {
         this.immuneLog = [];
-        this.blocklist = config?.blocklist || ['malware.com', 'malicious-cdn.com'];
+        this.blocklist = config.blocklist || [];
     }
 
     public initialize(): void {
         this._overrideFetch();
         this._initDOMObserver();
+        this._captureErrors();
     }
 
     private _initDOMObserver(): void {
@@ -37,28 +38,53 @@ export class PrimerGuard implements PrimerGuardInterface {
     private _overrideFetch(): void {
         const originalFetch = window.fetch;
 
-        window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
-            const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+        window.fetch = (async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+            const url = input instanceof Request ? input.url : input.toString();
+
             if (this.blocklist.some(domain => url.includes(domain))) {
                 this.immuneLog.push({ type: 'blocked_fetch', url });
-                return new Response(JSON.stringify({ error: "Blocked by PrimerGuard" }), { status: 403 });
+                return new Response(null, { status: 403 });
             }
+
             return originalFetch.call(window, input, init);
-        };
+        }) as typeof fetch;
+    }
+
+    public async fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+        const url = input instanceof Request ? input.url : input.toString();
+
+        if (this.blocklist.some(domain => url.includes(domain))) {
+            this.immuneLog.push({ type: 'blocked_fetch', url });
+            return new Response(null, { status: 403 });
+        }
+
+        return window.fetch(input, init);
     }
 
     private _captureErrors(): void {
-        window.onerror = ((event: Event | string, source?: string, lineno?: number, colno?: number, error?: Error | null) => {
+        interface ErrorEventWithError extends Event {
+            error?: Error;
+            message?: string;
+        }
+
+        interface UnhandledRejectionEvent extends Event {
+            reason?: Error | any;
+        }
+
+        window.addEventListener('error', (event: ErrorEventWithError) => {
             this.immuneLog.push({
-                type: 'js_error',
-                message: String(event),
-                source: source || 'unknown',
-                line: lineno || 0,
-                column: colno || 0,
-                error: error?.stack || 'N/A'
+                type: 'error',
+                message: event.error?.message || event.message || 'Unknown error'
             });
-            return true;
-        }) as OnErrorEventHandler;
+        });
+
+        window.addEventListener('unhandledrejection', (event: UnhandledRejectionEvent) => {
+            const reason = event.reason;
+            this.immuneLog.push({
+                type: 'unhandled_rejection',
+                message: reason?.message || String(reason)
+            });
+        });
     }
 
     public getImmuneLog(): ImmunityEvent[] {

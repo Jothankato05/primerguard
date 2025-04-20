@@ -3,7 +3,7 @@ export interface PrimerGuardConfig {
 }
 
 export interface ImmunityEvent {
-    type: 'patch_applied' | 'script_block' | 'blocked_script' | 'blocked_fetch' | 'js_error';
+    type: 'patch_applied' | 'script_block' | 'blocked_script' | 'blocked_fetch' | 'js_error' | 'error' | 'unhandled_rejection';
     node?: Node;
     url?: string;
     message?: string;

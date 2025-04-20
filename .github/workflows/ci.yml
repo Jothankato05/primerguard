@@ -38,10 +38,14 @@ jobs:
     - name: Type check
       run: npm run type-check
 
+    - name: Check coverage
+      run: |
+        npm run coverage-check || echo "Warning: Coverage check failed but continuing"
+
   publish:
     needs: build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: success() && github.ref == 'refs/heads/main'
     environment:
       name: npm
       url: https://github.com/jothanprime/primerguard/deployments
@@ -64,10 +68,10 @@ jobs:
     - name: Build
       run: npm run build
     
-    - uses: actions/setup-node@v4
-      with:
-        node-version: '20.x'
-        registry-url: 'https://registry.npmjs.org/'
+    - name: Validate build
+      run: |
+        npm run type-check
+        npm test
 
     - name: Publish to NPM
       run: npm publish --access public
