@@ -1,0 +1,14 @@
+# These owners will be the default owners for everything in
+# the repo. Unless a later match takes precedence,
+# they will be requested for review when someone opens a PR.
+*       @Jothankato05
+
+# Core implementation files
+/src/lib/   @Jothankato05
+
+# Configuration files
+*.json    @Jothankato05
+*.yml     @Jothankato05
+
+# Documentation
+*.md      @Jothankato05
