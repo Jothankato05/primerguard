@@ -1,6 +1,6 @@
 {
   "name": "primerguard",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Client-side web immunity agent to protect against script injection, errors, and backdoors.",
   "main": "dist/index.js",
   "module": "dist/index.js",
