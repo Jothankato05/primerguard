@@ -12,7 +12,9 @@
   "scripts": {
     "build": "tsc",
     "prepare": "npm run build",
-    "test": "echo 'Tests coming soon'"
+    "test": "jest",
+    "lint": "eslint . --ext .ts,.js",
+    "type-check": "tsc --noEmit"
   },
   "keywords": [
     "cybersecurity",
@@ -27,10 +29,16 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/primers-ai/primerguard"
+    "url": "https://github.com/Jothankato05/primerguard"
   },
   "devDependencies": {
+    "@types/jest": "^29.5.0",
     "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "jest": "^29.5.0",
+    "ts-jest": "^29.1.0",
     "typescript": "^5.0.0"
   }
 }
